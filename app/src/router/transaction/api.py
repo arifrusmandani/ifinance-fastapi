@@ -85,12 +85,6 @@ class TransactionView:
                 transaction_id=transaction_id,
                 user_id=authorized_user.id
             )
-            if not transaction:
-                response_builder.status = False
-                response_builder.code = http_status.HTTP_404_NOT_FOUND
-                response_builder.message = "Transaction not found"
-                return response_builder.to_dict()
-
             response_builder.status = True
             response_builder.code = http_status.HTTP_200_OK
             response_builder.message = "Transaction retrieved successfully"
