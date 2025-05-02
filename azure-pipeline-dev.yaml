@@ -1,0 +1,74 @@
+trigger:
+  branches:
+    include:
+      - development
+
+pool:
+  name: DDC Local Server
+
+variables:
+  - group: collection-ops-dev  # Reference to the variable group
+  - name: DockerImageName
+    value: 'be-ops-image'
+  - name: ProjectId
+    value: 'collection-system-dev-428112' # GCP Project Id
+  - name: RepoName
+    value: 'dev-collection-system-backend-operations' # GCP Repo Name
+  - name: ContainerRegistry
+    value: 'dev-collection-system' # AzureDevOps Service Connection for Artifact
+  - name: ArtifactRegistryUrl
+    value: 'asia-southeast2-docker.pkg.dev/$(ProjectId)/$(RepoName)' # Artifact Registry URL
+
+steps:
+  - task: Bash@3
+    displayName: 'Install Bandit Security Check'
+    inputs:
+      targetType: 'inline'
+      script: 'pip install bandit'
+
+  - task: Bash@3
+    displayName: 'Run Security Check'
+    inputs:
+      targetType: 'inline'
+      script: 'python -m bandit -r ./app/ -s B101,B608,B501,B105 --exclude ./app/src/tests/'
+    continueOnError: true
+
+  - task: Docker@2
+    displayName: 'Build and Push Docker Image'
+    inputs:
+      command: 'buildAndPush'
+      containerRegistry: $(ContainerRegistry)
+      repository: $(ProjectId)/$(RepoName)/$(DockerImageName)
+      tags: |
+        $(Build.BuildId)
+      buildArguments: |
+        API_PREFIX=$(API_PREFIX)
+        APP_CODE=$(APP_CODE)
+        DB_DRIVER=$(DB_DRIVER)
+        DB_NAME=$(DB_NAME)
+        DB_PORT=$(DB_PORT)
+        DB_SERVER=$(DB_SERVER)
+        DB_USERNAME=$(DB_USERNAME)
+        DB_PASSWORD=$(DB_PASSWORD)  # Assuming DB_PASSWORD is a secret variable
+        DEBUG=$(DEBUG)
+        ENV_NAME=$(ENV_NAME)
+        ORGANIZATION_SERVICE_URL=$(ORGANIZATION_SERVICE_URL)
+        PROJECT_NAME=$(PROJECT_NAME)
+        REDIS_DB=$(REDIS_DB)
+        REDIS_EXPIRATION_TIME=$(REDIS_EXPIRATION_TIME)
+        REDIS_HOST=$(REDIS_HOST)
+        REDIS_PORT=$(REDIS_PORT)
+
+  - task: CopyFiles@2
+    displayName: 'Copy Files to Artifact Staging Directory'
+    inputs:
+      SourceFolder: '$(Build.SourcesDirectory)/app'
+      Contents: '**' # Adjust this pattern to match the files you want to copy
+      TargetFolder: '$(Build.ArtifactStagingDirectory)'
+
+  - task: PublishBuildArtifacts@1
+    displayName: 'Publish Artifact'
+    inputs:
+      PathtoPublish: '$(Build.ArtifactStagingDirectory)'
+      ArtifactName: '_collection-ops'
+      publishLocation: 'Container'

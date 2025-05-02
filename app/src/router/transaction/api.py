@@ -1,0 +1,98 @@
+from fastapi import Response, status as http_status, Depends
+from fastapi.encoders import jsonable_encoder
+from fastapi_utils.cbv import cbv
+from fastapi_utils.inferring_router import InferringRouter
+
+from app.src.database.models.user import User
+from app.src.exception.handler.context import api_exception_handler
+from app.src.router.transaction.object import TransactionObject
+from app.src.router.transaction.schema import TransactionCreate, TransactionResponse, TransactionListResponse
+from app.src.router.user.security import get_authorized_user
+
+router = InferringRouter()
+
+
+@cbv(router)
+class TransactionView:
+    """ Transaction View Router """
+    res: Response
+    transaction_object = TransactionObject
+
+    @router.post("/", response_model=TransactionResponse)
+    async def create_transaction(
+        self,
+        transaction: TransactionCreate,
+        authorized_user: User = Depends(get_authorized_user)
+    ) -> dict:
+        """
+        Create a new transaction.
+
+        - **amount**: Transaction amount
+        - **description**: Transaction description
+        - **transaction_type**: Type of transaction (INCOME/EXPENSE)
+        - **category**: Transaction category (optional)
+        - **date**: Transaction date (optional, defaults to current time)
+
+        Returns the created transaction.
+        """
+        with api_exception_handler(self.res) as response_builder:
+            transaction_data = transaction.dict()
+            new_transaction = await self.transaction_object.create_transaction(
+                user_id=authorized_user.id,
+                transaction_data=transaction_data
+            )
+            response_builder.status = True
+            response_builder.code = http_status.HTTP_201_CREATED
+            response_builder.message = "Transaction created successfully"
+            response_builder.data = jsonable_encoder(new_transaction)
+            return response_builder.to_dict()
+
+    @router.get("/", response_model=TransactionListResponse)
+    async def get_transactions(
+        self,
+        authorized_user: User = Depends(get_authorized_user)
+    ) -> dict:
+        """
+        Get all transactions for the current user.
+
+        Returns a list of transactions.
+        """
+        with api_exception_handler(self.res, response_type="list") as response_builder:
+            transactions = await self.transaction_object.get_user_transactions(
+                user_id=authorized_user.id
+            )
+            response_builder.status = True
+            response_builder.code = http_status.HTTP_200_OK
+            response_builder.message = "Transactions retrieved successfully"
+            response_builder.data = jsonable_encoder(transactions)
+            return response_builder.to_dict()
+
+    @router.get("/{transaction_id}", response_model=TransactionResponse)
+    async def get_transaction(
+        self,
+        transaction_id: int,
+        authorized_user: User = Depends(get_authorized_user)
+    ) -> dict:
+        """
+        Get a specific transaction by ID.
+
+        - **transaction_id**: ID of the transaction to retrieve
+
+        Returns the transaction if found.
+        """
+        with api_exception_handler(self.res) as response_builder:
+            transaction = await self.transaction_object.get_transaction_by_id(
+                transaction_id=transaction_id,
+                user_id=authorized_user.id
+            )
+            if not transaction:
+                response_builder.status = False
+                response_builder.code = http_status.HTTP_404_NOT_FOUND
+                response_builder.message = "Transaction not found"
+                return response_builder.to_dict()
+
+            response_builder.status = True
+            response_builder.code = http_status.HTTP_200_OK
+            response_builder.message = "Transaction retrieved successfully"
+            response_builder.data = jsonable_encoder(transaction)
+            return response_builder.to_dict()
