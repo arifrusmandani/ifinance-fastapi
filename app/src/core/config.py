@@ -13,7 +13,7 @@ PROJECT_NAME = config("PROJECT_NAME", default="iFinance")
 DEBUG = config("DEBUG", cast=bool, default=True)
 VERSION = config("VERSION", default="")
 PAGINATION_LIMIT = config("PAGINATION_LIMIT", default=20, cast=int)
-GCP_PROJECT_ID = config("PROJECT_ID", default="collection-system-dev-428112")
+GCP_PROJECT_ID = config("PROJECT_ID", default="")
 
 """ Database Configuration """
 DB_DRIVER = config("DB_DRIVER", default="postgres")
@@ -43,36 +43,20 @@ REDIS_URI = f"redis://:{REDIS_PASSWORD}@{REDIS_HOST}:{REDIS_PORT}/{REDIS_DB}"
 
 """ Google Cloud Storage"""
 GOOGLE_APPLICATION_CREDENTIALS = config("GOOGLE_APPLICATION_CREDENTIALS", default="")
-GCS_BUCKET_IMAGE_ATTENDANCE = config("GCS_BUCKET_IMAGE_ATTENDANCE", default="dev_attendance_images")
-GCS_BUCKET_IMAGE_VISIT = config("GCS_BUCKET_IMAGE_VISIT", default="dev_followup_result")
-GCS_BUCKET_IMAGE_CUSTOMER = config("GCS_BUCKET_IMAGE_CUSTOMER", default="dev_customer_update")
+GCS_BUCKET_IMAGE_ATTENDANCE = config("GCS_BUCKET_IMAGE_ATTENDANCE", default="")
+GCS_BUCKET_IMAGE_VISIT = config("GCS_BUCKET_IMAGE_VISIT", default="")
+GCS_BUCKET_IMAGE_CUSTOMER = config("GCS_BUCKET_IMAGE_CUSTOMER", default="")
 
 """ EXTERNAL ENDPOINT """
 ORGANIZATION_SERVICE_URL = config(
-    "ORGANIZATION_SERVICE_URL", default="https://devorg.dipostar.org/api/organization")
+    "ORGANIZATION_SERVICE_URL", default="")
 ORGANIZATION_TOKEN = config("ORGANIZATION_TOKEN", default="")
 APP_CODE = config("APP_CODE", default="COLL")
 WSO_API_KEY = config("WSO_API_KEY", default="")
-MICROESB_URL = config("MICROESB_URL", default="http://34.149.230.159/api/v2")
+MICROESB_URL = config("MICROESB_URL", default="")
 MICROESB_API_KEY = config("MICROESB_API_KEY", default="")
-COLLECTION_MESSAGING_URL = config(
-    "COLLECTION_MESSAGING_URL",
-    default="https://dev-collection-system-messaging-7c2ofhfe6a-et.a.run.app/collection-messaging",
-)
-RUNNER_URL = config("RUNNER_URL", default="https://devgateway.ktbfuso.id/monitoring-service-leasing-thirdparty")
-RUNNER_ACCESS_TOKEN = config("RUNNER_ACCESS_TOKEN", default="")
+
+
 CMS_BASE_URL = config("CMS_BASE_URL", default="https://cisdev.dipostar.org")
 
-# MAPBOX
-MAPBOX_ENDPOINT_URL = os.getenv(
-    "MAPBOX_ENDPOINT_URL", "https://api.mapbox.com/search/geocode")
-MAPBOX_ACCESS_TOKEN = os.getenv("MAPBOX_ACCESS_TOKEN")
-
-
-class FieldCollectorPermissionEnum(str, Enum):
-    """ Field Collector Permission """
-    LOGIN = "collection.login"
-
-
-FIELD_COLLECTOR_PERMISSION = FieldCollectorPermissionEnum
-GEMINI_API_KEY= os.getenv("GEMINI_API_KEY", "AIzaSyBoDieHqTn20LPbut0rpRqYUnlhM7jDxns")
+GEMINI_API_KEY= os.getenv("GEMINI_API_KEY", "")
