@@ -8,7 +8,7 @@ from app.src.database.models.user import User
 from app.src.exception.handler.context import api_exception_handler
 from app.src.router.user.object import UserObject, create_access_token
 from app.src.router.user.schema import UserDetail, UserCreateRequest, UserLoginRequest, UserLoginResponse, UserResponse
-from app.src.router.user.security import get_authorized_user
+from app.src.router.user.security import get_authorized_user, blacklist_token
 from app.src.router.security import check_permission
 
 
@@ -118,4 +118,26 @@ class UserView:
             response_builder.code = http_status.HTTP_200_OK
             response_builder.message = "success"
             response_builder.data = jsonable_encoder(authorized_user)
+        return response_builder.to_dict()
+
+    @router.post("/logout")
+    async def logout_user(
+        self,
+        authorized_user: User = Depends(get_authorized_user),
+        token: str = Depends(oauth2_scheme)
+    ) -> dict:
+        """
+        Logout the current user and blacklist the token.
+
+        This endpoint invalidates the current session by blacklisting the token.
+        The token will be immediately invalid and cannot be used again.
+        """
+        with api_exception_handler(self.res) as response_builder:
+            # Blacklist the token
+            blacklist_token(token)
+            
+            response_builder.status = True
+            response_builder.code = http_status.HTTP_200_OK
+            response_builder.message = "Successfully logged out"
+            response_builder.data = None
         return response_builder.to_dict()
