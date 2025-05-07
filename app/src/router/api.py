@@ -6,6 +6,7 @@ from app.src.router.customer import api as customer
 from app.src.router.receipt import api as receipt
 from app.src.router.ai import api as ai
 from app.src.router.transaction import api as transaction
+from app.src.router.category import api as category
 
 router = APIRouter()
 
@@ -15,4 +16,6 @@ router.include_router(download.router, tags=["Download"], prefix="/download")
 router.include_router(customer.router, tags=["Customer"], prefix="/customer")
 router.include_router(receipt.router, tags=["Receipt"], prefix="/receipt")
 router.include_router(ai.router, tags=["AI"], prefix="/ai")
-router.include_router(transaction.router, tags=["Transaction"], prefix="/transaction")
+router.include_router(transaction.router, tags=[
+                      "Transaction"], prefix="/transaction")
+router.include_router(category.router, tags=["Category"], prefix="/category")
