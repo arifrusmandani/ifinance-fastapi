@@ -2,7 +2,7 @@ from datetime import datetime
 from typing import List, Optional
 from pydantic import BaseModel
 from app.src.database.models.transaction import TransactionType
-from app.src.router.response import BaseListResponse
+from app.src.router.response import BaseListResponse, BaseResponse
 
 
 class TransactionBase(BaseModel):
@@ -14,18 +14,19 @@ class TransactionBase(BaseModel):
 
 
 class TransactionCreate(TransactionBase):
-    pass
+    user_id: int
 
 
-class TransactionResponse(TransactionBase):
+class TransactionDetail(TransactionBase):
     id: int
     user_id: int
     created_at: datetime
-    updated_at: datetime
+    updated_at: datetime = None
 
-    class Config:
-        from_attributes = True
+
+class TransactionResponse(BaseResponse):
+    data: Optional[TransactionDetail] = None
 
 
 class TransactionListResponse(BaseListResponse):
-    data: List[TransactionResponse] = []
+    data: List[TransactionDetail] = []

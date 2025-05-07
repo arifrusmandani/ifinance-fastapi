@@ -6,7 +6,7 @@ from fastapi_utils.inferring_router import InferringRouter
 from app.src.database.models.user import User
 from app.src.exception.handler.context import api_exception_handler
 from app.src.router.transaction.object import TransactionObject
-from app.src.router.transaction.schema import TransactionCreate, TransactionResponse, TransactionListResponse
+from app.src.router.transaction.schema import TransactionBase, TransactionResponse, TransactionListResponse
 from app.src.router.user.security import get_authorized_user
 
 router = InferringRouter()
@@ -16,13 +16,15 @@ router = InferringRouter()
 class TransactionView:
     """ Transaction View Router """
     res: Response
-    transaction_object = TransactionObject
+
+    def __init__(self, authorized_user: User = Depends(get_authorized_user)):
+        self.authorized_user = authorized_user
+        self.transaction_object = TransactionObject(authorized_user)
 
     @router.post("/", response_model=TransactionResponse)
     async def create_transaction(
         self,
-        transaction: TransactionCreate,
-        authorized_user: User = Depends(get_authorized_user)
+        transaction: TransactionBase,
     ) -> dict:
         """
         Create a new transaction.
@@ -38,7 +40,7 @@ class TransactionView:
         with api_exception_handler(self.res) as response_builder:
             transaction_data = transaction.dict()
             new_transaction = await self.transaction_object.create_transaction(
-                user_id=authorized_user.id,
+                user_id=self.authorized_user.id,
                 transaction_data=transaction_data
             )
             response_builder.status = True
@@ -50,7 +52,6 @@ class TransactionView:
     @router.get("/", response_model=TransactionListResponse)
     async def get_transactions(
         self,
-        authorized_user: User = Depends(get_authorized_user)
     ) -> dict:
         """
         Get all transactions for the current user.
@@ -59,7 +60,7 @@ class TransactionView:
         """
         with api_exception_handler(self.res, response_type="list") as response_builder:
             transactions = await self.transaction_object.get_user_transactions(
-                user_id=authorized_user.id
+                user_id=self.authorized_user.id
             )
             response_builder.status = True
             response_builder.code = http_status.HTTP_200_OK
@@ -71,7 +72,6 @@ class TransactionView:
     async def get_transaction(
         self,
         transaction_id: int,
-        authorized_user: User = Depends(get_authorized_user)
     ) -> dict:
         """
         Get a specific transaction by ID.
@@ -83,7 +83,7 @@ class TransactionView:
         with api_exception_handler(self.res) as response_builder:
             transaction = await self.transaction_object.get_transaction_by_id(
                 transaction_id=transaction_id,
-                user_id=authorized_user.id
+                user_id=self.authorized_user.id
             )
             response_builder.status = True
             response_builder.code = http_status.HTTP_200_OK

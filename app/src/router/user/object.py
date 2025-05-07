@@ -10,7 +10,7 @@ from app.src.database.session import session_manager
 # JWT Configuration
 SECRET_KEY = "your-secret-key-here"  # TODO: Move to environment variables
 ALGORITHM = "HS256"
-ACCESS_TOKEN_EXPIRE_MINUTES = 30
+ACCESS_TOKEN_EXPIRE_MINUTES = 60 * 12
 
 
 def get_password_hash(password: str) -> str:
