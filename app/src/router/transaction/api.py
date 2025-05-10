@@ -3,6 +3,7 @@ from fastapi.encoders import jsonable_encoder
 from fastapi_utils.cbv import cbv
 from fastapi_utils.inferring_router import InferringRouter
 
+from app.src.core.config import PAGINATION_LIMIT
 from app.src.database.models.user import User
 from app.src.exception.handler.context import api_exception_handler
 from app.src.router.transaction.object import TransactionObject
@@ -52,6 +53,8 @@ class TransactionView:
     @router.get("/", response_model=TransactionListResponse)
     async def get_transactions(
         self,
+        offset: int = 0,
+        limit: int = PAGINATION_LIMIT
     ) -> dict:
         """
         Get all transactions for the current user.
@@ -60,7 +63,9 @@ class TransactionView:
         """
         with api_exception_handler(self.res, response_type="list") as response_builder:
             transactions = await self.transaction_object.get_user_transactions(
-                user_id=self.authorized_user.id
+                user_id=self.authorized_user.id,
+                offset=offset,
+                limit=limit
             )
             response_builder.status = True
             response_builder.code = http_status.HTTP_200_OK

@@ -79,7 +79,7 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
             query = query.filter(self.model.deleted_date == None)
         if hasattr(self.model, "deleted_at"):
             query = query.filter(self.model.deleted_at == None)
-        data = query.order_by(self.model.id.asc()).offset(
+        data = query.order_by(self.model.id.desc()).offset(
             offset).limit(limit).all()
         return data
 

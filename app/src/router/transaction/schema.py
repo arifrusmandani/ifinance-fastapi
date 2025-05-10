@@ -23,10 +23,16 @@ class TransactionDetail(TransactionBase):
     created_at: datetime
     updated_at: datetime = None
 
+class TransactionDetailList(TransactionBase):
+    id: int
+    user_id: int
+    category_name: str
+    category_icon: str
+    created_at: datetime
 
 class TransactionResponse(BaseResponse):
     data: Optional[TransactionDetail] = None
 
 
 class TransactionListResponse(BaseListResponse):
-    data: List[TransactionDetail] = []
+    data: List[TransactionDetailList] = []
