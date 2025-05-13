@@ -1,8 +1,10 @@
-from app.src.database.models.transaction import Transaction
+from app.src.database.models.transaction import Transaction, TransactionType
 from app.src.router.transaction.schema import TransactionCreate, TransactionDetailList
 from app.src.router.transaction.crud import CRUDTransaction
 from app.src.database.session import session_manager
-from typing import List
+from typing import List, Optional, Tuple
+from datetime import datetime, date
+from sqlalchemy import func
 
 
 class TransactionObject:
@@ -22,7 +24,7 @@ class TransactionObject:
             )
             return await self.crud_transaction.create(db, transaction_data)
 
-    async def get_user_transactions(self, user_id: int, offset: int, limit: int) -> List[TransactionDetailList]:
+    async def get_user_transactions(self, user_id: int, offset: int = 0, limit: int = 20) -> List[TransactionDetailList]:
         result = []
         with session_manager() as db:
             datas = await self.crud_transaction.get_user_transactions(
@@ -52,3 +54,41 @@ class TransactionObject:
             if not transaction:
                 raise FileNotFoundError("Transaction not found.")
             return transaction
+
+    async def get_transaction_summary(
+        self,
+        user_id: int,
+        start_date: Optional[date] = None,
+        end_date: Optional[date] = None
+    ) -> Tuple[float, float]:
+        with session_manager() as db:
+            # Base query with user filter
+            query = db.query(
+                Transaction.type,
+                func.sum(Transaction.amount).label('total')
+            ).filter(Transaction.user_id == user_id)
+
+            # Add date filters if provided
+            if start_date:
+                query = query.filter(Transaction.date >= start_date)
+            if end_date:
+                query = query.filter(Transaction.date <= end_date)
+
+            # Group by transaction type
+            query = query.group_by(Transaction.type)
+
+            # Execute query
+            results = query.all()
+
+            # Initialize totals
+            total_income = 0.0
+            total_expense = 0.0
+
+            # Process results
+            for type_, total in results:
+                if type_ == TransactionType.INCOME:
+                    total_income = float(total)
+                elif type_ == TransactionType.EXPENSE:
+                    total_expense = float(total)
+
+            return total_income, total_expense

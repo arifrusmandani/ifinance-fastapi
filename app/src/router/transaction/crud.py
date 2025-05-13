@@ -39,7 +39,7 @@ class CRUDTransaction(CRUDBase):
             Category.icon.label('category_icon')
         ).join(
             Category, Category.code == Transaction.category_code
-        ).filter(Transaction.user_id == user_id).order_by(Transaction.id.desc()).offset(
+        ).filter(Transaction.user_id == user_id).order_by(Transaction.date.desc()).offset(
             offset).limit(limit)
         return query.all()
 

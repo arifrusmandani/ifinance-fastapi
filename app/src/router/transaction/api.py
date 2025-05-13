@@ -2,12 +2,19 @@ from fastapi import Response, status as http_status, Depends
 from fastapi.encoders import jsonable_encoder
 from fastapi_utils.cbv import cbv
 from fastapi_utils.inferring_router import InferringRouter
+from datetime import date
+from typing import Optional
 
 from app.src.core.config import PAGINATION_LIMIT
 from app.src.database.models.user import User
 from app.src.exception.handler.context import api_exception_handler
 from app.src.router.transaction.object import TransactionObject
-from app.src.router.transaction.schema import TransactionBase, TransactionResponse, TransactionListResponse
+from app.src.router.transaction.schema import (
+    TransactionBase,
+    TransactionResponse,
+    TransactionListResponse,
+    TransactionSummaryResponse
+)
 from app.src.router.user.security import get_authorized_user
 
 router = InferringRouter()
@@ -48,7 +55,7 @@ class TransactionView:
             response_builder.code = http_status.HTTP_201_CREATED
             response_builder.message = "Transaction created successfully"
             response_builder.data = jsonable_encoder(new_transaction)
-            return response_builder.to_dict()
+        return response_builder.to_dict()
 
     @router.get("/", response_model=TransactionListResponse)
     async def get_transactions(
@@ -71,7 +78,7 @@ class TransactionView:
             response_builder.code = http_status.HTTP_200_OK
             response_builder.message = "Transactions retrieved successfully"
             response_builder.data = jsonable_encoder(transactions)
-            return response_builder.to_dict()
+        return response_builder.to_dict()
 
     @router.get("/{transaction_id}", response_model=TransactionResponse)
     async def get_transaction(
@@ -94,4 +101,37 @@ class TransactionView:
             response_builder.code = http_status.HTTP_200_OK
             response_builder.message = "Transaction retrieved successfully"
             response_builder.data = jsonable_encoder(transaction)
-            return response_builder.to_dict()
+        return response_builder.to_dict()
+
+    @router.get("/user/summary", response_model=TransactionSummaryResponse)
+    async def get_transaction_summary(
+        self,
+        start_date: Optional[date] = None,
+        end_date: Optional[date] = None
+    ) -> dict:
+        """
+        Get transaction summary (total income and expense) for the current user.
+
+        - **start_date**: Filter transactions from this date (optional)
+        - **end_date**: Filter transactions until this date (optional)
+
+        Returns total income, total expense, and net amount.
+        """
+        with api_exception_handler(self.res) as response_builder:
+            total_income, total_expense = await self.transaction_object.get_transaction_summary(
+                user_id=self.authorized_user.id,
+                start_date=start_date,
+                end_date=end_date
+            )
+
+            summary = {
+                "total_income": total_income,
+                "total_expense": total_expense,
+                "net_amount": total_income - total_expense
+            }
+
+            response_builder.status = True
+            response_builder.code = http_status.HTTP_200_OK
+            response_builder.message = "Transaction summary retrieved successfully"
+            response_builder.data = summary
+        return response_builder.to_dict()

@@ -23,6 +23,7 @@ class TransactionDetail(TransactionBase):
     created_at: datetime
     updated_at: datetime = None
 
+
 class TransactionDetailList(TransactionBase):
     id: int
     user_id: int
@@ -30,9 +31,20 @@ class TransactionDetailList(TransactionBase):
     category_icon: str
     created_at: datetime
 
+
 class TransactionResponse(BaseResponse):
     data: Optional[TransactionDetail] = None
 
 
 class TransactionListResponse(BaseListResponse):
     data: List[TransactionDetailList] = []
+
+
+class TransactionSummary(BaseModel):
+    total_income: float
+    total_expense: float
+    net_amount: float
+
+
+class TransactionSummaryResponse(BaseResponse):
+    data: Optional[TransactionSummary] = None
