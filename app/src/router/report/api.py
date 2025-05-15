@@ -10,7 +10,8 @@ from app.src.database.models.user import User
 from app.src.router.report.object import ReportObject
 from app.src.router.report.schema import (
     CategoryReportListResponse,
-    MonthlyChartResponse
+    MonthlyChartResponse,
+    DashboardSummaryResponse
 )
 from app.src.router.user.security import get_authorized_user
 from app.src.exception.handler.context import api_exception_handler
@@ -76,4 +77,31 @@ class ReportView:
             response_builder.code = http_status.HTTP_200_OK
             response_builder.message = "Monthly chart data retrieved successfully"
             response_builder.data = jsonable_encoder(reports)
+            return response_builder.to_dict()
+
+    @router.get("/dashboard-summary", response_model=DashboardSummaryResponse)
+    async def get_dashboard_summary(
+        self,
+        start_date: Optional[date] = None,
+        end_date: Optional[date] = None
+    ) -> dict:
+        """
+        Get dashboard summary data for the current user.
+
+        - **start_date**: Filter transactions from this date (optional, default: current month)
+        - **end_date**: Filter transactions until this date (optional, default: current month)
+
+        Returns total balance, total period expenses, total period income, percent change, and last month value for each metric.
+        """
+        with api_exception_handler(self.res, response_type="list") as response_builder:
+            summary = await self.report_object.get_dashboard_summary(
+                user_id=self.authorized_user.id,
+                start_date=start_date,
+                end_date=end_date
+            )
+
+            response_builder.status = True
+            response_builder.code = http_status.HTTP_200_OK
+            response_builder.message = "Dashboard summary data retrieved successfully"
+            response_builder.data = jsonable_encoder(summary)
             return response_builder.to_dict()

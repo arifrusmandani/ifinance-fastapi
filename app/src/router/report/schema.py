@@ -26,3 +26,14 @@ class MonthlyChartData(BaseModel):
 
 class MonthlyChartResponse(BaseResponse):
     data: List[MonthlyChartData] = []
+
+
+class DashboardSummaryItem(BaseModel):
+    label: str
+    value: float
+    percent: float
+    last_month: float
+
+
+class DashboardSummaryResponse(BaseResponse):
+    data: List[DashboardSummaryItem] = []
