@@ -37,3 +37,15 @@ class DashboardSummaryItem(BaseModel):
 
 class DashboardSummaryResponse(BaseResponse):
     data: List[DashboardSummaryItem] = []
+
+
+class MostExpenseCategory(BaseModel):
+    category_code: str
+    category_name: str
+    amount: float
+    color: str
+    percentage: float
+
+
+class MostExpenseCategoryResponse(BaseResponse):
+    data: List[MostExpenseCategory] = []

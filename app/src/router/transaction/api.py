@@ -47,6 +47,7 @@ class TransactionView:
         """
         with api_exception_handler(self.res) as response_builder:
             transaction_data = transaction.dict()
+            print(transaction_data)
             new_transaction = await self.transaction_object.create_transaction(
                 user_id=self.authorized_user.id,
                 transaction_data=transaction_data

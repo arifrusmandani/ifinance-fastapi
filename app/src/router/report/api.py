@@ -11,7 +11,8 @@ from app.src.router.report.object import ReportObject
 from app.src.router.report.schema import (
     CategoryReportListResponse,
     MonthlyChartResponse,
-    DashboardSummaryResponse
+    DashboardSummaryResponse,
+    MostExpenseCategoryResponse
 )
 from app.src.router.user.security import get_authorized_user
 from app.src.exception.handler.context import api_exception_handler
@@ -104,4 +105,31 @@ class ReportView:
             response_builder.code = http_status.HTTP_200_OK
             response_builder.message = "Dashboard summary data retrieved successfully"
             response_builder.data = jsonable_encoder(summary)
+            return response_builder.to_dict()
+
+    @router.get("/most-expense-category", response_model=MostExpenseCategoryResponse)
+    async def get_most_expense_by_category(
+        self,
+        start_date: Optional[date] = None,
+        end_date: Optional[date] = None
+    ) -> dict:
+        """
+        Get most expensive categories for the current user.
+
+        - **start_date**: Filter transactions from this date (optional, default: current month)
+        - **end_date**: Filter transactions until this date (optional, default: current month)
+
+        Returns a list of categories with their total expense amount and percentage of total expenses.
+        """
+        with api_exception_handler(self.res, response_type="list") as response_builder:
+            categories = await self.report_object.get_most_expense_by_category(
+                user_id=self.authorized_user.id,
+                start_date=start_date,
+                end_date=end_date
+            )
+
+            response_builder.status = True
+            response_builder.code = http_status.HTTP_200_OK
+            response_builder.message = "Most expense by category retrieved successfully"
+            response_builder.data = jsonable_encoder(categories)
             return response_builder.to_dict()
