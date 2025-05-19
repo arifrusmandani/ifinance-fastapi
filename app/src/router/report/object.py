@@ -9,7 +9,8 @@ from app.src.router.report.schema import (
     CategoryReport,
     MonthlyChartData,
     DashboardSummaryItem,
-    MostExpenseCategory
+    MostExpenseCategory,
+    CategoryAmount
 )
 
 
@@ -273,6 +274,110 @@ class ReportObject:
                         amount=amount,
                         color=color,
                         percentage=round(percentage, 2)
+                    )
+                )
+
+            return categories
+
+    async def get_income_categories(
+        self,
+        user_id: int,
+        start_date: Optional[date] = None,
+        end_date: Optional[date] = None
+    ) -> List[CategoryAmount]:
+        with session_manager() as db:
+            # If no period is given, use current month as default
+            today = datetime.now().date()
+            if not start_date or not end_date:
+                start_date = today.replace(day=1)
+                next_month = (start_date.replace(day=28) +
+                              timedelta(days=4)).replace(day=1)
+                end_date = next_month - timedelta(days=1)
+
+            # Get category incomes with category details
+            results = db.query(
+                Transaction.category_code,
+                Category.name.label('category_name'),
+                Category.color,
+                func.sum(Transaction.amount).label('total')
+            ).join(
+                Category,
+                Transaction.category_code == Category.code
+            ).filter(
+                Transaction.user_id == user_id,
+                Transaction.type == TransactionType.INCOME,
+                Transaction.date >= start_date,
+                Transaction.date <= end_date
+            ).group_by(
+                Transaction.category_code,
+                Category.name,
+                Category.color
+            ).order_by(
+                desc('total')
+            ).all()
+
+            # Process results
+            categories = []
+            for category_code, category_name, color, total in results:
+                amount = float(total)
+                categories.append(
+                    CategoryAmount(
+                        category_code=category_code,
+                        category_name=category_name,
+                        amount=amount,
+                        color=color
+                    )
+                )
+
+            return categories
+
+    async def get_expense_categories(
+        self,
+        user_id: int,
+        start_date: Optional[date] = None,
+        end_date: Optional[date] = None
+    ) -> List[CategoryAmount]:
+        with session_manager() as db:
+            # If no period is given, use current month as default
+            today = datetime.now().date()
+            if not start_date or not end_date:
+                start_date = today.replace(day=1)
+                next_month = (start_date.replace(day=28) +
+                              timedelta(days=4)).replace(day=1)
+                end_date = next_month - timedelta(days=1)
+
+            # Get category expenses with category details
+            results = db.query(
+                Transaction.category_code,
+                Category.name.label('category_name'),
+                Category.color,
+                func.sum(Transaction.amount).label('total')
+            ).join(
+                Category,
+                Transaction.category_code == Category.code
+            ).filter(
+                Transaction.user_id == user_id,
+                Transaction.type == TransactionType.EXPENSE,
+                Transaction.date >= start_date,
+                Transaction.date <= end_date
+            ).group_by(
+                Transaction.category_code,
+                Category.name,
+                Category.color
+            ).order_by(
+                desc('total')
+            ).all()
+
+            # Process results
+            categories = []
+            for category_code, category_name, color, total in results:
+                amount = float(total)
+                categories.append(
+                    CategoryAmount(
+                        category_code=category_code,
+                        category_name=category_name,
+                        amount=amount,
+                        color=color
                     )
                 )
 

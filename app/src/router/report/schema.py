@@ -49,3 +49,14 @@ class MostExpenseCategory(BaseModel):
 
 class MostExpenseCategoryResponse(BaseResponse):
     data: List[MostExpenseCategory] = []
+
+
+class CategoryAmount(BaseModel):
+    category_code: str
+    category_name: str
+    amount: float
+    color: str
+
+
+class CategoryAmountResponse(BaseResponse):
+    data: List[CategoryAmount] = []
