@@ -43,7 +43,7 @@ class TransactionListResponse(BaseListResponse):
 class TransactionSummary(BaseModel):
     total_income: float
     total_expense: float
-    net_amount: float
+    total_balance: float
 
 
 class TransactionSummaryResponse(BaseResponse):

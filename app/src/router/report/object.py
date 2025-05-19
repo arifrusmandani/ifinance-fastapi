@@ -183,7 +183,7 @@ class ReportObject:
             def percent_change(current, previous):
                 if previous == 0:
                     return 0.0 if current == 0 else 100.0
-                return ((current - previous) / abs(previous)) * 100
+                return round(((current - previous) / abs(previous)) * 100, 2)
 
             # Prepare summary items
             balance = totals[TransactionType.INCOME] - \

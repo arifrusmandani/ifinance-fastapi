@@ -128,7 +128,7 @@ class TransactionView:
             summary = {
                 "total_income": total_income,
                 "total_expense": total_expense,
-                "net_amount": total_income - total_expense
+                "total_balance": total_income - total_expense
             }
 
             response_builder.status = True
