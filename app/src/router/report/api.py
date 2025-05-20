@@ -13,7 +13,8 @@ from app.src.router.report.schema import (
     MonthlyChartResponse,
     DashboardSummaryResponse,
     MostExpenseCategoryResponse,
-    CategoryAmountResponse
+    CategoryAmountResponse,
+    CashflowDataResponse
 )
 from app.src.router.user.security import get_authorized_user
 from app.src.exception.handler.context import api_exception_handler
@@ -187,4 +188,31 @@ class ReportView:
             response_builder.code = http_status.HTTP_200_OK
             response_builder.message = "Expense categories retrieved successfully"
             response_builder.data = jsonable_encoder(categories)
+            return response_builder.to_dict()
+
+    @router.get("/cashflow-data", response_model=CashflowDataResponse)
+    async def get_cashflow_data(
+        self,
+        start_date: Optional[date] = None,
+        end_date: Optional[date] = None
+    ) -> dict:
+        """
+        Get cashflow data grouped by month for the current user.
+
+        - **start_date**: Filter transactions from this date (optional, default: current year start)
+        - **end_date**: Filter transactions until this date (optional, default: current year end)
+
+        Returns a list of monthly cashflow data, including income and expense transactions.
+        """
+        with api_exception_handler(self.res, response_type="list") as response_builder:
+            cashflow_data = await self.report_object.get_cashflow_data(
+                user_id=self.authorized_user.id,
+                start_date=start_date,
+                end_date=end_date
+            )
+
+            response_builder.status = True
+            response_builder.code = http_status.HTTP_200_OK
+            response_builder.message = "Cashflow data retrieved successfully"
+            response_builder.data = jsonable_encoder(cashflow_data)
             return response_builder.to_dict()

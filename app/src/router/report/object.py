@@ -1,4 +1,4 @@
-from typing import List, Optional, Dict
+from typing import List, Optional, Dict, Any
 from datetime import date, datetime, timedelta
 from sqlalchemy import func, desc, extract
 from app.src.database.models.transaction import Transaction, TransactionType
@@ -10,7 +10,9 @@ from app.src.router.report.schema import (
     MonthlyChartData,
     DashboardSummaryItem,
     MostExpenseCategory,
-    CategoryAmount
+    CategoryAmount,
+    MonthCashflow,
+    CashflowTransaction
 )
 
 
@@ -382,3 +384,59 @@ class ReportObject:
                 )
 
             return categories
+
+    async def get_cashflow_data(
+        self,
+        user_id: int,
+        start_date: Optional[date] = None,
+        end_date: Optional[date] = None
+    ) -> List[MonthCashflow]:
+        with session_manager() as db:
+            # If no period is given, use current year as default
+            today = datetime.now().date()
+            if not start_date or not end_date:
+                start_date = today.replace(month=1, day=1)
+                end_date = today.replace(month=12, day=31)
+
+            # Query transactions with category code
+            query = db.query(
+                Transaction.date,
+                Transaction.type,
+                Transaction.amount,
+                Transaction.description,
+                Transaction.category_code
+            ).filter(
+                Transaction.user_id == user_id,
+                Transaction.date >= start_date,
+                Transaction.date <= end_date
+            ).order_by(Transaction.date)
+
+            results = query.all()
+
+            # Group transactions by month
+            cashflow_by_month: Dict[str, MonthCashflow] = {}
+
+            for date_, type_, amount, description, category_code in results:
+                month_str = date_.strftime('%Y-%m')
+
+                if month_str not in cashflow_by_month:
+                    cashflow_by_month[month_str] = MonthCashflow(
+                        month=month_str)
+
+                transaction = CashflowTransaction(
+                    category_code=category_code,
+                    description=description,
+                    amount=float(amount),
+                    date=date_
+                )
+
+                if type_ == TransactionType.INCOME:
+                    cashflow_by_month[month_str].income.append(transaction)
+                elif type_ == TransactionType.EXPENSE:
+                    cashflow_by_month[month_str].expense.append(transaction)
+
+            # Convert dictionary values to a sorted list
+            sorted_cashflow = sorted(
+                cashflow_by_month.values(), key=lambda x: x.month)
+
+            return sorted_cashflow

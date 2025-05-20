@@ -2,6 +2,7 @@ from typing import List, Optional
 from pydantic import BaseModel
 from app.src.router.response import BaseListResponse, BaseResponse
 from app.src.database.models.transaction import TransactionType
+from datetime import date, datetime
 
 
 class CategoryReport(BaseModel):
@@ -60,3 +61,20 @@ class CategoryAmount(BaseModel):
 
 class CategoryAmountResponse(BaseResponse):
     data: List[CategoryAmount] = []
+
+
+class CashflowTransaction(BaseModel):
+    category_code: Optional[str] = None
+    description: Optional[str] = None
+    amount: float
+    date: datetime
+
+
+class MonthCashflow(BaseModel):
+    month: str  # YYYY-MM format
+    income: List[CashflowTransaction] = []
+    expense: List[CashflowTransaction] = []
+
+
+class CashflowDataResponse(BaseResponse):
+    data: List[MonthCashflow] = []
