@@ -48,3 +48,7 @@ class TransactionSummary(BaseModel):
 
 class TransactionSummaryResponse(BaseResponse):
     data: Optional[TransactionSummary] = None
+
+
+class BulkTransactionUploadResponse(BaseResponse):
+    data: Optional[dict] = None

@@ -8,7 +8,6 @@ from fastapi.exceptions import HTTPException
 from sqlalchemy.exc import IntegrityError
 
 from app.src.exception.auth import UnauthorizedError
-from app.src.exception.custom import AttendanceError
 from app.src.utils.response_builder import ResponseBuilder, ResponseListBuilder
 
 
@@ -51,13 +50,6 @@ def api_exception_handler(res, response_type=None):
         response.status = False
         response.code = res.status_code
         response.message = str(error)
-
-    except AttendanceError as error:
-        res.status_code = status.HTTP_400_BAD_REQUEST
-        response.status = False
-        response.code = res.status_code
-        response.message = error.message
-        response.data = error.data
 
     # except sqlalchemy.exc.IntegrityError as error:
     #     errormessage = ""

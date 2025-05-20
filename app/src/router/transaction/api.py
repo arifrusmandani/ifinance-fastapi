@@ -1,4 +1,4 @@
-from fastapi import Response, status as http_status, Depends
+from fastapi import Response, status as http_status, Depends, UploadFile, File
 from fastapi.encoders import jsonable_encoder
 from fastapi_utils.cbv import cbv
 from fastapi_utils.inferring_router import InferringRouter
@@ -13,7 +13,8 @@ from app.src.router.transaction.schema import (
     TransactionBase,
     TransactionResponse,
     TransactionListResponse,
-    TransactionSummaryResponse
+    TransactionSummaryResponse,
+    BulkTransactionUploadResponse
 )
 from app.src.router.user.security import get_authorized_user
 
@@ -135,4 +136,37 @@ class TransactionView:
             response_builder.code = http_status.HTTP_200_OK
             response_builder.message = "Transaction summary retrieved successfully"
             response_builder.data = summary
+        return response_builder.to_dict()
+
+    @router.post("/bulk-upload", response_model=BulkTransactionUploadResponse)
+    async def bulk_create_transactions(
+        self,
+        file: UploadFile = File(...)
+    ) -> dict:
+        """
+        Bulk create transactions from Excel file.
+
+        The Excel file should have the following format:
+        - Sheet name: 'transaction'
+        - Required columns: amount, type, description, date, category_code
+        - Maximum 1000 rows allowed
+        - Date format: YYYY-MM-DD
+        - Type values: INCOME or EXPENSE
+
+        Returns summary of created transactions.
+        """
+        with api_exception_handler(self.res) as response_builder:
+            if not file.filename.endswith(('.xlsx', '.xls')):
+                raise ValueError("Only Excel files (.xlsx, .xls) are allowed")
+            
+
+            result = await self.transaction_object.bulk_create_transactions(
+                user_id=self.authorized_user.id,
+                file=file
+            )
+
+            response_builder.status = True
+            response_builder.code = http_status.HTTP_201_CREATED
+            response_builder.message = "Transactions created successfully"
+            response_builder.data = jsonable_encoder(result)
         return response_builder.to_dict()
