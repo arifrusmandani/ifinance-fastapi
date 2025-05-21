@@ -7,10 +7,10 @@ from app.src.database import BaseModel
 
 
 class AnalysisType(enum.Enum):
-    SPENDING_PATTERN = 'spending_pattern'
-    SAVINGS_RECOMMENDATION = 'savings_recommendation'
-    BUDGET_PLANNING = 'budget_planning'
-    GENERAL = 'general'
+    spending_pattern = 'spending_pattern'
+    savings_recommendation = 'savings_recommendation'
+    budget_planning = 'budget_planning'
+    general = 'general'
 
 
 class AIAnalysis(BaseModel):
