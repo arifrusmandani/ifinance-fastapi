@@ -11,7 +11,7 @@ class PromptRequest(BaseModel):
 
 # Add the new schema for financial analysis response
 class FinancialAnalysisResponse(BaseResponse):
-    data: Optional[str] = None
+    data: Optional[dict] = None
 
 
 # Add schema for creating AI analysis record
@@ -19,14 +19,14 @@ class AIAnalysisCreate(BaseModel):
     user_id: int
     analysis_type: AnalysisType
     input_data: str
-    result: str
+    result: dict
 
 
 # Add schema for getting latest AI analysis
 class LatestFinancialAnalysis(BaseModel):
     analysis_type: AnalysisType
     input_data: str
-    result: str
+    result: dict
     created_at: datetime
 
 

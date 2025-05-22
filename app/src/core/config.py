@@ -63,7 +63,7 @@ CMS_BASE_URL = config("CMS_BASE_URL", default="https://cisdev.dipostar.org")
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY", "")
 
 
-TEMPLATE_PROMPT = """
+TEMPLATE_PROMPT_ANALYSIS = """
 Anda berperan sebagai **Analis Pakar Keuangan**.
 
 Tugas Anda adalah melakukan analisis mendalam terhadap data cashflow keuangan yang disediakan dalam format JSON. Data ini mencakup catatan pemasukan (income) dan pengeluaran (expense) bulanan selama periode tertentu.
@@ -108,4 +108,77 @@ Lakukan analisis komprehensif terhadap data cashflow tersebut. Pastikan laporan 
     *   Contoh rekomendasi: strategi **alokasi surplus** (dana darurat, investasi, pelunasan utang), pentingnya **anggaran (budgeting)**, klarifikasi **kategori pengeluaran** yang belum jelas (misal: pendidikan anak), cara mengelola **pendapatan tidak tetap**, dan saran untuk melakukan **review keuangan berkala**.
 
 Gunakan bahasa yang profesional namun mudah dipahami, layaknya seorang analis keuangan memberikan laporan kepada klien.
+"""
+
+JSON_FORMAT = {
+  "ringkasan_umum": {
+    "bulan": [],
+    "total_pemasukan": [],
+    "total_pengeluaran": [],
+    "arus_kas_bersih": [],
+    "rata_rata": {
+      "total_pemasukan": 0,
+      "total_pengeluaran": 0,
+      "arus_kas_bersih": 0
+    },
+    "catatan": ""
+  },
+  "analisis_pemasukan": {
+    "sumber": {
+      "utama": "",
+      "tambahan": ""
+    },
+    "stabilitas": "",
+    "fluktuasi": ""
+  },
+  "analisis_pengeluaran": {
+    "kategori": {
+      "wajib": [
+        {
+          "category_code": "",
+          "description": ""
+        }
+      ],
+      "semi_variabel": [
+        {
+          "category_code": "",
+          "description": ""
+        }
+      ],
+      "tidak_tetap": [
+        {
+          "category_code": "",
+          "description": ""
+        }
+      ]
+    },
+    "tren": ""
+  },
+  "observasi_kunci": {
+    "kesehatan_finansial": "",
+    "kekuatan": "",
+    "kelemahan": ""
+  },
+  "rekomendasi": {
+    "alokasi_surplus": {
+      "dana_darurat": "",
+      "investasi": ""
+    },
+    "anggaran_review": {
+      "anggaran": "",
+      "review": ""
+    }
+  }
+}
+
+TEMPLATE_PROMPT_ANALYSIS_JSON= """
+Berikut adalah data finansial bulanan saya:
+
+{json_data}
+
+Tolong analisis data finansial tersebut dan kembalikan hasilnya dalam format JSON. Pastikan struktur JSON hasil analisis sesuai dengan *template* yang telah ditentukan di bawah ini, sehingga semua informasi bisa langsung dimuat ke *layout UI* seperti *dashboard* keuangan keluarga.
+
+**Struktur JSON yang Diharapkan:**
+
+{json_format}
 """

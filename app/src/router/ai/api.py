@@ -9,7 +9,7 @@ from datetime import date  # Import date
 from typing import Optional, Dict, Any  # Import types
 
 # Import TEMPLATE_PROMPT_ANALYSIS
-from app.src.core.config import GEMINI_API_KEY, TEMPLATE_PROMPT_ANALYSIS
+from app.src.core.config import GEMINI_API_KEY, JSON_FORMAT, TEMPLATE_PROMPT_ANALYSIS, TEMPLATE_PROMPT_ANALYSIS_JSON
 from app.src.exception.handler.context import api_exception_handler
 # Keep if still needed for /ask-gemini
 from app.src.router.ai.schema import PromptRequest, FinancialAnalysisResponse, LatestFinancialAnalysisResponse
@@ -77,7 +77,10 @@ class AIView:
                     jsonable_encoder(cashflow_data), indent=2)
 
                 # Build the prompt
-                prompt = TEMPLATE_PROMPT_ANALYSIS.format(json_data=json_data)
+                prompt = TEMPLATE_PROMPT_ANALYSIS_JSON.format(
+                    json_data=json_data,
+                    json_format=json.dumps(JSON_FORMAT, indent=2)
+                )
 
                 # Call the AI model
                 # Use a suitable model, e.g., "gemini-pro" or "gemini-1.5-flash-latest"
@@ -87,12 +90,24 @@ class AIView:
                     contents=prompt
                 )
 
-                # Save analysis result
+                raw_response = ai_response.text
+
                 ai_object = AIObject(authorized_user)
+                try:
+                    result = ai_object.parse_ai_json_response(raw_response)
+                except json.JSONDecodeError as e:
+                    print("JSON Error:", e)
+                except Exception as e:
+                    print("General Error:", e)
+
+
+                breakpoint()
+
+                # Save analysis result
                 await ai_object.save_analysis_result(
                     analysis_type=AnalysisType.general,
                     input_data="",  # Empty as requested
-                    result=ai_response.text
+                    result=result
                 )
 
             except Exception as e:
@@ -104,7 +119,7 @@ class AIView:
             response_builder.status = True
             response_builder.code = http_status.HTTP_200_OK
             response_builder.message = "Financial analysis generated successfully"
-            response_builder.data = ai_response.text  # Return the text response
+            response_builder.data = result  # Return the text response
         return response_builder.to_dict()
 
     @router.get("/latest-analysis", response_model=LatestFinancialAnalysisResponse)

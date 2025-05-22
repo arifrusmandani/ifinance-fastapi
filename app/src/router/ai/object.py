@@ -1,3 +1,5 @@
+import json
+import re
 from app.src.database.session import session_manager
 from app.src.database.models.user import User  # Import User
 from app.src.router.ai.crud import ai_analysis_crud
@@ -54,3 +56,17 @@ class AIObject:
                 result=latest_analysis.result,
                 created_at=latest_analysis.created_at
             )
+
+
+    def parse_ai_json_response(self, raw_response):
+        # Hapus blok kode markdown seperti ```json ... ```
+        cleaned = re.sub(r"^```json|```$", "", raw_response.strip(), flags=re.MULTILINE).strip()
+        
+        # Decode escape sequences seperti \n, \"
+        try:
+            cleaned = bytes(cleaned, "utf-8").decode("unicode_escape")
+        except Exception as e:
+            print("Unicode decode warning:", e)
+        
+        # Final parsing
+        return json.loads(cleaned)

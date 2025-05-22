@@ -39,9 +39,11 @@ class CRUDTransaction(CRUDBase):
             Category.icon.label('category_icon')
         ).join(
             Category, Category.code == Transaction.category_code
-        ).filter(Transaction.user_id == user_id).order_by(Transaction.date.desc(), Transaction.created_at.desc()).offset(
-            offset).limit(limit)
-        return query.all()
+        ).filter(Transaction.user_id == user_id).order_by(Transaction.date.desc(), Transaction.created_at.desc())
+
+        total_data = query.count()
+        query = query.offset(offset).limit(limit)
+        return query.all(), total_data
 
     async def get_transaction_by_id(db: AsyncSession, transaction_id: int, user_id: int) -> Transaction:
         query = db.query(Transaction).filter(

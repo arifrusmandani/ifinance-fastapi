@@ -1,3 +1,5 @@
+import json
+import re
 from app.src.database.models.transaction import Transaction, TransactionType
 from app.src.router.transaction.schema import TransactionCreate, TransactionDetailList
 from app.src.router.transaction.crud import CRUDTransaction
@@ -30,7 +32,7 @@ class TransactionObject:
     async def get_user_transactions(self, user_id: int, offset: int = 0, limit: int = 20) -> List[TransactionDetailList]:
         result = []
         with session_manager() as db:
-            datas = await self.crud_transaction.get_user_transactions(
+            datas, total_data = await self.crud_transaction.get_user_transactions(
                 db=db, user_id=user_id, offset=offset, limit=limit)
 
             for data in datas:
@@ -49,7 +51,7 @@ class TransactionObject:
                     )
                 )
 
-            return result
+            return result, total_data
 
     async def get_transaction_by_id(self, transaction_id: int, user_id: int) -> Transaction:
         with session_manager() as db:

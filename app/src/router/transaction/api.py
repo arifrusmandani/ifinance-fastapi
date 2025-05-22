@@ -71,7 +71,7 @@ class TransactionView:
         Returns a list of transactions.
         """
         with api_exception_handler(self.res, response_type="list") as response_builder:
-            transactions = await self.transaction_object.get_user_transactions(
+            transactions, total_data = await self.transaction_object.get_user_transactions(
                 user_id=self.authorized_user.id,
                 offset=offset,
                 limit=limit
@@ -80,6 +80,7 @@ class TransactionView:
             response_builder.code = http_status.HTTP_200_OK
             response_builder.message = "Transactions retrieved successfully"
             response_builder.data = jsonable_encoder(transactions)
+            response_builder.record_count = total_data
         return response_builder.to_dict()
 
     @router.get("/{transaction_id}", response_model=TransactionResponse)
