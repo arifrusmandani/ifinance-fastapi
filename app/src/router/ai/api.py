@@ -100,9 +100,6 @@ class AIView:
                 except Exception as e:
                     print("General Error:", e)
 
-
-                breakpoint()
-
                 # Save analysis result
                 await ai_object.save_analysis_result(
                     analysis_type=AnalysisType.general,
