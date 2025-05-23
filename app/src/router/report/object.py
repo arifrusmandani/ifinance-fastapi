@@ -201,18 +201,18 @@ class ReportObject:
                     last_month=prev_balance
                 ),
                 DashboardSummaryItem(
-                    label="Total Period Expenses",
-                    value=totals[TransactionType.EXPENSE],
-                    percent=percent_change(
-                        totals[TransactionType.EXPENSE], prev_totals[TransactionType.EXPENSE]),
-                    last_month=prev_totals[TransactionType.EXPENSE]
-                ),
-                DashboardSummaryItem(
                     label="Total Period Income",
                     value=totals[TransactionType.INCOME],
                     percent=percent_change(
                         totals[TransactionType.INCOME], prev_totals[TransactionType.INCOME]),
                     last_month=prev_totals[TransactionType.INCOME]
+                ),
+                DashboardSummaryItem(
+                    label="Total Period Expenses",
+                    value=totals[TransactionType.EXPENSE],
+                    percent=percent_change(
+                        totals[TransactionType.EXPENSE], prev_totals[TransactionType.EXPENSE]),
+                    last_month=prev_totals[TransactionType.EXPENSE]
                 ),
             ]
             return summary
