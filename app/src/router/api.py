@@ -8,6 +8,7 @@ from app.src.router.ai import api as ai
 from app.src.router.transaction import api as transaction
 from app.src.router.category import api as category
 from app.src.router.report import api as report
+from app.src.router.family import api as family
 
 router = APIRouter()
 
@@ -21,3 +22,4 @@ router.include_router(transaction.router, tags=[
                       "Transaction"], prefix="/transaction")
 router.include_router(category.router, tags=["Category"], prefix="/category")
 router.include_router(report.router, tags=["Report"], prefix="/report")
+router.include_router(family.router, tags=["Family"], prefix="/family")
