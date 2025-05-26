@@ -26,6 +26,7 @@ class FamilyObject:
             # Query to get family members with their user details
             # Case 1: Current user is the main user
             query1 = db.query(
+                Family.user_id,
                 Family.family_user_id,
                 User.email,
                 User.name,
@@ -42,7 +43,8 @@ class FamilyObject:
 
             # Case 2: Current user is a family member
             query2 = db.query(
-                Family.user_id.label('family_user_id'),
+                Family.user_id,
+                Family.family_user_id,
                 User.email,
                 User.name,
                 User.phone,
@@ -63,6 +65,7 @@ class FamilyObject:
             # Format results
             family_members = [
                 {
+                    "user_id": result.user_id,
                     "family_user_id": result.family_user_id,
                     "email": result.email,
                     "name": result.name,
@@ -137,6 +140,7 @@ class FamilyObject:
             db.refresh(new_family)
 
             return {
+                "user_id": self.authorized_user.id,
                 "family_user_id": target_user.id,
                 "email": target_user.email,
                 "name": target_user.name,
@@ -145,4 +149,51 @@ class FamilyObject:
                 "is_active": target_user.is_active,
                 "relationship": relationship,
                 "is_verified": False
+            }
+
+    async def verify_family_member(self, family_user_id: int) -> dict:
+        """
+        Verify a family member relationship.
+        This can only be done by the family member (family_user_id) to verify their relationship with the main user.
+
+        Args:
+            family_user_id: ID of the family member (must match the logged-in user)
+
+        Returns:
+            dict: Updated family member details
+
+        Raises:
+            HTTPException: If family relationship not found or if user is not authorized
+        """
+        with session_manager() as db:
+            # Check if the family relationship exists and if the current user is the family member
+            family = db.query(Family).filter(
+                Family.family_user_id == self.authorized_user.id,
+                Family.user_id == family_user_id
+            ).first()
+
+            if not family:
+                raise HTTPException(
+                    status_code=status.HTTP_404_NOT_FOUND,
+                    detail="Family relationship not found"
+                )
+
+            # Update verification status
+            family.is_verified = True
+            db.commit()
+            db.refresh(family)
+
+            # Get user details for response
+            user = db.query(User).filter(User.id == family.user_id).first()
+
+            return {
+                "user_id": self.authorized_user.id,
+                "family_user_id": user.id,
+                "email": user.email,
+                "name": user.name,
+                "phone": user.phone,
+                "last_login": user.last_login,
+                "is_active": user.is_active,
+                "relationship": family.relationship,
+                "is_verified": family.is_verified
             }

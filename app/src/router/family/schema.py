@@ -6,6 +6,7 @@ from app.src.database.models.family import EnumRelationship
 
 
 class FamilyMemberDetail(BaseModel):
+    user_id: int
     family_user_id: int
     email: str
     name: str
