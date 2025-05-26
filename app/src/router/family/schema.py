@@ -1,4 +1,4 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, EmailStr
 from typing import Optional, List
 from datetime import datetime
 from app.src.router.response import BaseListResponse, BaseResponse
@@ -12,8 +12,18 @@ class FamilyMemberDetail(BaseModel):
     phone: Optional[str] = None
     last_login: Optional[datetime] = None
     is_active: bool
-    relationship: EnumRelationship = None
+    relationship: EnumRelationship
+    is_verified: bool
 
 
 class FamilyListResponse(BaseListResponse):
     data: List[FamilyMemberDetail] = []
+
+
+class AddFamilyMemberRequest(BaseModel):
+    email: EmailStr
+    relationship: EnumRelationship
+
+
+class FamilyDetailResponse(BaseResponse):
+    data: Optional[FamilyMemberDetail] = None
